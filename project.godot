@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Triplex trifecta server side"
-run/main_scene="res://server.tscn"
+run/main_scene="res://control.tscn"
 config/features=PackedStringArray("4.1", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Server="*res://server.gd"
 
 [rendering]
 
