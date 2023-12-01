@@ -18,6 +18,7 @@ var peer = WebSocketMultiplayerPeer.new()
 var users = []
 var match_queuing = {}
 var lobbies = {}
+
 signal receive_data(data)
 
 func _ready():
@@ -58,6 +59,8 @@ func on_receive_data(data):
 			}
 			
 			send_to_client(int(data.client_id) , message)
+			peer.peer_disconnected.connect(lobbies[lobby_id].on_peer_disconnected)
+			lobbies[lobby_id].id = lobby_id
 		else:
 			lobbies[data.lobby].add_player(data)
 
@@ -106,9 +109,9 @@ func send_to_client(id , data):
 	peer.get_peer(id).put_packet(message_bytes)
 
 func generate_random_string():
-	var Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var result = ""
-	for i in range(32):
+	for i in range(6):
 		var index = randi() % Characters.length()
 		result += Characters[index]
 	return result
