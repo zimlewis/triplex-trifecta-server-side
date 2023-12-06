@@ -40,33 +40,54 @@ func on_receive_data(data):
 		}
 	
 	if data.message == Message.LOBBY:
-		if data.lobby == "create new lobby":
-			var l = Lobby.new(data.client_id)
-			l.add_player(data)
-			
-			var lobby_id
-			while true:
-				lobby_id = generate_random_string()
-				if !lobby_id in lobbies: break
-			
-			data.lobby = lobby_id
-			lobbies[lobby_id] = l
-			
-			var message = {
-				"message" : Message.LOBBY,
-				"state" : "create",
-				"lobby" : lobby_id
-			}
-			
-			send_to_client(int(data.client_id) , message)
-			peer.peer_disconnected.connect(lobbies[lobby_id].on_peer_disconnected)
-			lobbies[lobby_id].id = lobby_id
-		else:
-			lobbies[data.lobby].add_player(data)
-
+		join_lobby(data)
 	if data.message == Message.CANCEL_QUEUE:
 		match_queuing.erase(data.client_id)
-
+	if data.message == Message.OFFER || data.message == Message.ANSWER || data.message == Message.CANDIDATE:
+		send_to_client(int(data.peer) , data)
+	
+func join_lobby(data):
+	var lobby_id
+	
+	if data.lobby == "create new lobby":
+		var l = Lobby.new(data.client_id)
+		l.add_player(data)
+		
+		while true:
+			lobby_id = generate_random_string()
+			if !lobby_id in lobbies: break
+		
+		data.lobby = lobby_id
+		lobbies[lobby_id] = l
+		
+		var message = {
+			"message" : Message.LOBBY,
+			"state" : "create",
+			"lobby" : lobby_id
+		}
+		
+		send_to_client(int(data.client_id) , message)
+		peer.peer_disconnected.connect(lobbies[lobby_id].on_peer_disconnected)
+		lobbies[lobby_id].id = lobby_id
+	else:
+		lobby_id = data.lobby
+		lobbies[lobby_id].add_player(data)
+	
+	for player in lobbies[lobby_id].players:
+		var user_connected_data = {
+			"message" : Message.USER_CONNECTED,
+			"id" : data.client_id
+		}
+		
+		var user_connected_data_2 = {
+			"message" : Message.USER_CONNECTED,
+			"id" : player
+		}
+		
+		send_to_client(int(player) , user_connected_data)
+		send_to_client(int(data.client_id) , user_connected_data_2)
+	pass
+	
 func _process(delta):
 	peer.poll()
 	if !(peer.get_available_packet_count() > 0): return #No data sent
@@ -89,6 +110,7 @@ func peer_connected(id):
 	send_to_client(id , message)
 	
 	users.append(JSON.stringify(id))
+	
 	pass
 
 func peer_disconnected(id):
