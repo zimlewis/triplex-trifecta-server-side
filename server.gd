@@ -49,6 +49,7 @@ func on_receive_data(data):
 func join_lobby(data):
 	var lobby_id
 	
+	
 	if data.lobby == "create new lobby":
 		var l = Lobby.new(data.client_id)
 		l.add_player(data)
@@ -71,6 +72,16 @@ func join_lobby(data):
 		lobbies[lobby_id].id = lobby_id
 	else:
 		lobby_id = data.lobby
+
+		if !lobbies.has(lobby_id):
+			var message = {
+				"message" : Message.LOBBY,
+				"state" : "wrong"
+			}
+			send_to_client(int(data.client_id) , message)
+			return
+		
+
 		lobbies[lobby_id].add_player(data)
 	
 	for player in lobbies[lobby_id].players:
@@ -127,6 +138,10 @@ func start_server():
 		
 func send_to_client(id , data):
 	var message_bytes = JSON.stringify(data).to_utf8_buffer()
+	
+	print(JSON.parse_string(message_bytes.get_string_from_utf8()))
+	
+	print(PackedByteArray([0x1b]).get_string_from_ascii() + "[2J")
 	
 	peer.get_peer(id).put_packet(message_bytes)
 

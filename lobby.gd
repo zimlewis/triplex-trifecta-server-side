@@ -21,7 +21,8 @@ func add_player(player_data):
 			var message = {
 				"message" : Server.Message.LOBBY,
 				"state" : "start",
-				"players" : JSON.stringify(players)
+				"players" : JSON.stringify(players),
+				"host" : host
 			}
 			Server.send_to_client(int(p) , message)
 		pass
