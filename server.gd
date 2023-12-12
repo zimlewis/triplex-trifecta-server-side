@@ -143,7 +143,8 @@ func send_to_client(id , data):
 	
 	print(PackedByteArray([0x1b]).get_string_from_ascii() + "[2J")
 	
-	peer.get_peer(id).put_packet(message_bytes)
+	if peer.get_peer(id) != null:
+		peer.get_peer(id).put_packet(message_bytes)
 
 func generate_random_string():
 	var Characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
